@@ -2,15 +2,14 @@ pipeline {
     agent any
 
     environment {
-        VENV_DIR = 'venv' // Name of the virtual environment directory
-        DJANGO_SETTINGS_MODULE = 'myproject.settings' // Set your Django settings file
-        PIP_CACHE = "${WORKSPACE}/.pip-cache" // To cache pip dependencies
+        VENV_DIR = 'venv'
+        DJANGO_SETTINGS_MODULE = 'myproject.settings'
+        PIP_CACHE = "${WORKSPACE}/.pip-cache"
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                // Checkout the code from source control
                 git branch: 'main', url: 'https://github.com/your-user/your-django-repo.git'
             }
         }
@@ -54,7 +53,6 @@ pipeline {
 
         stage('Build and Package') {
             steps {
-                // Example packaging step, customize based on your needs
                 sh '''
                 source ${VENV_DIR}/bin/activate
                 python manage.py migrate --noinput
@@ -70,23 +68,18 @@ pipeline {
 
         stage('Deployment') {
             when {
-                branch 'main' // Only deploy on the main branch
+                branch 'main'
             }
             steps {
-                // Add your deployment steps (e.g., using rsync, SSH, Docker, etc.)
-                sh '''
-                echo "Deploying the Django application to the server"
-                # Example deployment command
-                # rsync -avz . user@yourserver.com:/path/to/deploy/
-                '''
+                // Replace this with actual deployment steps
+                sh 'echo "Deploying the Django application to the server"'
             }
         }
     }
 
     post {
         always {
-            // Cleanup the workspace after the build
-            cleanWs()
+            cleanWs()  // Clean the workspace after each run
         }
         success {
             echo 'Build was successful!'
