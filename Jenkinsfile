@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-         SUDO_PASSWORD = credentials('nana') // Use Jenkins credentials for sudo password
         PYTHON_VERSION = '3.9'  // Specify your Python version
         VENV_NAME = 'django_venv'
     }
@@ -13,20 +12,10 @@ pipeline {
                 checkout scm
             }
         }
-        stage('Install Python') {
-            steps {
-                script {
-                    sh '''
-                    echo "$SUDO_PASSWORD" | sudo -S apt-get update
-                    echo "$SUDO_PASSWORD" | sudo -S apt-get install -y python3 python3-venv python3-pip
-                    '''
-                }
-            }
 
         stage('Set up Python environment') {
             steps {
                 sh """
-                
                     python${PYTHON_VERSION} -m venv ${VENV_NAME}
                     . ${VENV_NAME}/bin/activate
                     pip install --upgrade pip
