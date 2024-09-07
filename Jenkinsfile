@@ -13,6 +13,28 @@ pipeline {
             }
         }
 
+        stage('install python'){
+          sh '''
+                # Install Python 3.9 if it's not already installed
+                sudo apt update
+                sudo apt install -y python3.9 python3.9-venv
+
+                # Create a virtual environment
+                python3.9 -m venv ${VENV_NAME}
+
+                # Activate the virtual environment
+                . ${VENV_NAME}/bin/activate
+
+                # Upgrade pip
+                pip install --upgrade pip
+
+                # Verify installation of pip and python version
+                python --version
+                pip --version
+                '''
+
+        }
+
         stage('Set up Python environment') {
             steps {
                 sh """
