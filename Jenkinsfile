@@ -2,90 +2,95 @@ pipeline {
     agent any
 
     environment {
-        VENV_DIR = 'venv'
-        DJANGO_SETTINGS_MODULE = 'myproject.settings'
-        PIP_CACHE = "${WORKSPACE}/.pip-cache"
+        PYTHON_VERSION = '3.9'  // Specify your Python version
+        VENV_NAME = 'django_venv'
     }
 
     stages {
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/your-user/your-django-repo.git'
+                checkout scm
             }
         }
 
-        stage('Setup Python Environment') {
+        stage('Set up Python environment') {
             steps {
-                sh '''
-                python3 -m venv ${VENV_DIR}
-                source ${VENV_DIR}/bin/activate
-                pip install --cache-dir=${PIP_CACHE} -r requirements.txt
-                '''
+                sh """
+                    python${PYTHON_VERSION} -m venv ${VENV_NAME}
+                    . ${VENV_NAME}/bin/activate
+                    pip install --upgrade pip
+                """
             }
         }
 
-        stage('Linting') {
+        stage('Install dependencies') {
             steps {
-                sh '''
-                source ${VENV_DIR}/bin/activate
-                flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-                '''
+                sh """
+                    . ${VENV_NAME}/bin/activate
+                    pip install -r requirements.txt
+                """
             }
         }
 
-        stage('Run Unit Tests') {
+        stage('Run tests') {
             steps {
-                sh '''
-                source ${VENV_DIR}/bin/activate
-                python manage.py test --settings=${DJANGO_SETTINGS_MODULE} --verbosity=2
-                '''
+                sh """
+                    . ${VENV_NAME}/bin/activate
+                    python manage.py test
+                """
             }
         }
 
-        stage('Collect Static Files') {
+        stage('Code quality checks') {
             steps {
-                sh '''
-                source ${VENV_DIR}/bin/activate
-                python manage.py collectstatic --noinput
-                '''
+                sh """
+                    . ${VENV_NAME}/bin/activate
+                    flake8 .
+                    black --check .
+                """
             }
         }
 
-        stage('Build and Package') {
+        stage('Collect static files') {
             steps {
-                sh '''
-                source ${VENV_DIR}/bin/activate
-                python manage.py migrate --noinput
-                '''
+                sh """
+                    . ${VENV_NAME}/bin/activate
+                    python manage.py collectstatic --noinput
+                """
             }
         }
 
-        stage('Archive Artifacts') {
+        stage('Deploy to staging') {
+            when {
+                branch 'develop'
+            }
             steps {
-                archiveArtifacts artifacts: '**/*.py', allowEmptyArchive: true
+                echo 'Deploying to staging server...'
+                // Add your deployment steps here
             }
         }
 
-        stage('Deployment') {
+        stage('Deploy to production') {
             when {
                 branch 'main'
             }
             steps {
-                // Replace this with actual deployment steps
-                sh 'echo "Deploying the Django application to the server"'
+                echo 'Deploying to production server...'
+                // Add your production deployment steps here
             }
         }
     }
 
     post {
         always {
-            cleanWs()  // Clean the workspace after each run
+            echo 'Cleaning up...'
+            sh "rm -rf ${VENV_NAME}"
         }
         success {
-            echo 'Build was successful!'
+            echo 'Pipeline succeeded!'
         }
         failure {
-            echo 'Build failed!'
+            echo 'Pipeline failed.'
         }
     }
 }
