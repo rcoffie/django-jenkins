@@ -4,6 +4,8 @@ pipeline {
     environment {
         PYTHON_VERSION = '3.9'  // Specify your Python version
         VENV_NAME = 'django_venv'
+        PYENV_ROOT = "$HOME/.pyenv"
+        PATH = "$PYENV_ROOT/bin:$PATH"
     }
 
     stages {
@@ -14,10 +16,28 @@ pipeline {
         }
          stage('Install Python') {
             steps {
+                // sh '''
+                // sudo apt-get update
+                // sudo apt-get install -y python3.9 python3.9-venv python3.9-dev
+                // python3.9 --version
+                // '''
                 sh '''
-                sudo apt-get update
-                sudo apt-get install -y python3.9 python3.9-venv python3.9-dev
-                python3.9 --version
+                curl https://pyenv.run | bash
+                export PATH="$HOME/.pyenv/bin:$PATH"
+                eval "$(pyenv init --path)"
+                eval "$(pyenv init -)"
+                pyenv install 3.9.10
+                pyenv global 3.9.10
+                '''
+            }
+        }
+        stage('Check Python Version') {
+            steps {
+                sh '''
+                export PATH="$HOME/.pyenv/bin:$PATH"
+                eval "$(pyenv init --path)"
+                eval "$(pyenv init -)"
+                python --version
                 '''
             }
         }
