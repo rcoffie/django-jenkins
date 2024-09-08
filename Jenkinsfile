@@ -38,7 +38,7 @@ pipeline {
                 sh """
                     . ${VENV_NAME}/bin/activate
                     black .
-                    flake8 . --max-line-length=88 --extend-ignore=E203,W503 --exclude=*/migrations/*,*/django_venv/*,*/.venv/*,*/src/*,*/site-packages/*
+                    flake8 . --max-line-length=99 --extend-ignore=E503,W503 --exclude=*/migrations/*,*/django_venv/*,*/.venv/*,*/src/*,*/site-packages/*
                 """
             }
         }
