@@ -2,7 +2,6 @@ pipeline {
     agent any
     
     environment {
-        // Use a more flexible Python version specification
         PYTHON_CMD = sh(script: 'which python3', returnStdout: true).trim()
         VENV_NAME = 'django_venv'
     }
@@ -26,6 +25,22 @@ pipeline {
                     . ${VENV_NAME}/bin/activate
                     pip install --upgrade pip
                     pip install -r requirements.txt
+                    pip list  # Debug: List installed packages
+                """
+            }
+        }
+        
+        stage('Debug Information') {
+            steps {
+                sh """
+                    . ${VENV_NAME}/bin/activate
+                    echo "Current directory: \$(pwd)"
+                    echo "Directory contents:"
+                    ls -la
+                    echo "Python version:"
+                    python --version
+                    echo "Django version:"
+                    python -m django --version
                 """
             }
         }
@@ -34,7 +49,13 @@ pipeline {
             steps {
                 sh """
                     . ${VENV_NAME}/bin/activate
-                    python manage.py test
+                    if [ -f manage.py ]; then
+                        python manage.py check  # Run Django system check
+                        python manage.py test
+                    else
+                        echo "manage.py not found in the current directory"
+                        exit 1
+                    fi
                 """
             }
         }
@@ -61,7 +82,6 @@ pipeline {
         
         stage('Deploy') {
             steps {
-                // Add your deployment steps here
                 echo "Deploying the application..."
             }
         }
@@ -69,7 +89,6 @@ pipeline {
     
     post {
         always {
-            // Clean up the virtual environment
             sh "rm -rf ${VENV_NAME}"
         }
     }
