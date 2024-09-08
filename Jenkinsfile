@@ -2,7 +2,8 @@ pipeline {
     agent any
     
     environment {
-        PYTHON_VERSION = '3.9'
+        // Use a more flexible Python version specification
+        PYTHON_CMD = sh(script: 'which python3', returnStdout: true).trim()
         VENV_NAME = 'django_venv'
     }
     
@@ -15,8 +16,13 @@ pipeline {
         
         stage('Set up Python environment') {
             steps {
+                script {
+                    if (!PYTHON_CMD) {
+                        error "Python 3 not found. Please install Python 3 on the Jenkins server."
+                    }
+                }
                 sh """
-                    python${PYTHON_VERSION} -m venv ${VENV_NAME}
+                    ${PYTHON_CMD} -m venv ${VENV_NAME}
                     . ${VENV_NAME}/bin/activate
                     pip install --upgrade pip
                     pip install -r requirements.txt
@@ -37,6 +43,7 @@ pipeline {
             steps {
                 sh """
                     . ${VENV_NAME}/bin/activate
+                    pip install flake8 black  # Install linting tools if not in requirements.txt
                     flake8 .
                     black --check .
                 """
