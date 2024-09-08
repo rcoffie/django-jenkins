@@ -1,17 +1,23 @@
-pipeline{
+pipeline {
     agent any
-    stages{
-        stage("build"){
-            sh 'pip3 install -r reqqirements.txt'
-        }
-        stage('test'){
-            steps{
-                sh 'python3 manage.py test'
+    
+    stages {
+        stage('Build') {
+            steps {
+                // Build steps go here
+                echo 'Building...'
             }
         }
-        stage('Deploy'){
-            steps{
-                echo 'deploying '
+        stage('Test') {
+            steps {
+                // Test steps go here
+                echo 'Testing...'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                // Deploy steps go here
+                echo 'Deploying...'
             }
         }
     }
