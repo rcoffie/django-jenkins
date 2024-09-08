@@ -4,6 +4,8 @@ pipeline {
     environment {
         PYTHON_CMD = sh(script: 'which python3', returnStdout: true).trim()
         VENV_NAME = 'django_venv'
+        // Define your secret key here or use Jenkins credentials
+        DJANGO_SECRET_KEY = credentials('django-secret-key')
     }
     
     stages {
@@ -47,16 +49,18 @@ pipeline {
         
         stage('Run tests') {
             steps {
-                sh """
-                    . ${VENV_NAME}/bin/activate
-                    if [ -f manage.py ]; then
-                        python manage.py check  # Run Django system check
-                        python manage.py test
-                    else
-                        echo "manage.py not found in the current directory"
-                        exit 1
-                    fi
-                """
+                withEnv(["SECRET_KEY=${DJANGO_SECRET_KEY}"]) {
+                    sh """
+                        . ${VENV_NAME}/bin/activate
+                        if [ -f manage.py ]; then
+                            python manage.py check  # Run Django system check
+                            python manage.py test
+                        else
+                            echo "manage.py not found in the current directory"
+                            exit 1
+                        fi
+                    """
+                }
             }
         }
         
@@ -73,10 +77,12 @@ pipeline {
         
         stage('Build') {
             steps {
-                sh """
-                    . ${VENV_NAME}/bin/activate
-                    python manage.py collectstatic --noinput
-                """
+                withEnv(["SECRET_KEY=${DJANGO_SECRET_KEY}"]) {
+                    sh """
+                        . ${VENV_NAME}/bin/activate
+                        python manage.py collectstatic --noinput
+                    """
+                }
             }
         }
         
