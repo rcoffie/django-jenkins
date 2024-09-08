@@ -4,8 +4,10 @@ pipeline {
     environment {
         PYTHON_CMD = sh(script: 'which python3', returnStdout: true).trim()
         VENV_NAME = 'django_venv'
-        // Define your secret key here or use Jenkins credentials
+        // Define your environment variables here
         DJANGO_SECRET_KEY = credentials('django-secret-key')
+        DJANGO_DEBUG = 'False'  // Set to 'True' for development, 'False' for production
+        // Add any other environment variables your Django project needs
     }
     
     stages {
@@ -49,7 +51,11 @@ pipeline {
         
         stage('Run tests') {
             steps {
-                withEnv(["SECRET_KEY=${DJANGO_SECRET_KEY}"]) {
+                withEnv([
+                    "SECRET_KEY=${DJANGO_SECRET_KEY}",
+                    "DEBUG=${DJANGO_DEBUG}"
+                    // Add any other environment variables here
+                ]) {
                     sh """
                         . ${VENV_NAME}/bin/activate
                         if [ -f manage.py ]; then
@@ -77,7 +83,11 @@ pipeline {
         
         stage('Build') {
             steps {
-                withEnv(["SECRET_KEY=${DJANGO_SECRET_KEY}"]) {
+                withEnv([
+                    "SECRET_KEY=${DJANGO_SECRET_KEY}",
+                    "DEBUG=${DJANGO_DEBUG}"
+                    // Add any other environment variables here
+                ]) {
                     sh """
                         . ${VENV_NAME}/bin/activate
                         python manage.py collectstatic --noinput
