@@ -1,7 +1,10 @@
-from django.core.paginator import EmptyPage, Paginator, PageNotAnInteger
+from django.core.mail import send_mail
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.shortcuts import get_object_or_404, render
 
 from blog.models import Post
+
+from .forms import EmailPostForm
 
 # Create your views here.
 
@@ -34,3 +37,36 @@ def post_detail(request, year, month, day, post):
         publish__day=day,
     )
     return render(request, "blog/post/detail.html", {"post": post})
+
+
+def post_share(request, post_id):
+
+    form = EmailPostForm(request.POST)
+    post = get_object_or_404(Post, id=post_id, status=Post.Status.PUBLISHED)
+    sent = False
+    if form.is_valid():
+        cd = form.cleaned_data
+        post_url= request.build_absolute_uri(post.get_absolute_url())
+        subject = (
+            f"{cd['name']} ({cd['email']}) "
+            f"recommends you read {post.title}")
+        message = (
+            f"Read {post.title} at {post_url}\n\n"
+            f"{cd['name']}\'s comments: {cd['comments']}"
+        )
+        send_mail(
+            subject=subject,
+             message=message,
+             from_email=None,
+             recipient_list=[cd['to']]
+        )
+        sent = True
+    else:
+        form = EmailPostForm()
+    return render(
+        request,
+        "blog/post/share.html",
+        {
+            "form": form,
+        },
+    )
