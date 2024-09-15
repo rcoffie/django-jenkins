@@ -46,19 +46,14 @@ def post_share(request, post_id):
     sent = False
     if form.is_valid():
         cd = form.cleaned_data
-        post_url= request.build_absolute_uri(post.get_absolute_url())
-        subject = (
-            f"{cd['name']} ({cd['email']}) "
-            f"recommends you read {post.title}")
+        post_url = request.build_absolute_uri(post.get_absolute_url())
+        subject = f"{cd['name']} ({cd['email']}) " f"recommends you read {post.title}"
         message = (
             f"Read {post.title} at {post_url}\n\n"
-            f"{cd['name']}\'s comments: {cd['comments']}"
+            f"{cd['name']}'s comments: {cd['comments']}"
         )
         send_mail(
-            subject=subject,
-             message=message,
-             from_email=None,
-             recipient_list=[cd['to']]
+            subject=subject, message=message, from_email=None, recipient_list=[cd["to"]]
         )
         sent = True
     else:
