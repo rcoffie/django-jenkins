@@ -12,7 +12,7 @@ from .models import Post
 
 def post_list(request):
     post_list = Post.published.all()
-    paginator = Paginator(post_list, 3)
+    paginator = Paginator(post_list, 4)
     page_number = request.GET.get("page", 1)
     try:
         posts = paginator.page(page_number)
@@ -51,7 +51,11 @@ def post_detail(request, year, month, day, post):
     )
     comments = post.comments.filter(active=True)
     form = CommentForm()
-    return render(request, "blog/post/detail.html", {"post": post, "comments":comments,"form":form})
+    return render(
+        request,
+        "blog/post/detail.html",
+        {"post": post, "comments": comments, "form": form},
+    )
 
 
 def post_share(request, post_id):
